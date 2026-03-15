@@ -1,0 +1,5 @@
+# Survey PDFs (large binary files)
+corpus/survey_pdfs/
+
+# Experiments (scratch work, not for sharing)
+experiments/
