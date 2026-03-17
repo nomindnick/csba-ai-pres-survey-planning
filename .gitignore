@@ -3,3 +3,8 @@ corpus/survey_pdfs/
 
 # Experiments (scratch work, not for sharing)
 experiments/
+
+# Python virtual environments
+.venv/
+__pycache__/
+*.pyc

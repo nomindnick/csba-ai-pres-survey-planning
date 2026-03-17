@@ -1,0 +1,7 @@
+round	judge_score	breadth	depth	evidence	rigor	actionability	honesty	key_findings	critique_summary	status
+1	-	-	-	-	-	-	-	site diffs, position diffs, HR fields (transfer/wing/room), tenure>age	(pre-judge baseline)	baseline
+2	-	-	-	-	-	-	-	VH broad-based, tenure×transfer, gender gap, north wing physical	(pre-judge baseline)	baseline
+3	-	-	-	-	-	-	-	question-level surprise (VH leads Q2), counselor exception, riverside polarization	(pre-judge baseline)	baseline
+4	-	-	-	-	-	-	-	riverside polarization=reliability, Q3 communication hierarchy failure	(pre-judge baseline)	baseline
+5	-	-	-	-	-	-	-	scorer validated (95% agreement), tenure robust across positions	(pre-judge baseline)	baseline
+6	8.3	8	8	8	8	9	9	hedging/silent dissatisfaction, masking effects (race×tenure, gender×site)	multivariate model needed; VH gender gap unexplained; race×tenure needs qualitative grounding	complete
