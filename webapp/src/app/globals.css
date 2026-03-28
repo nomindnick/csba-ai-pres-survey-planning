@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+:root {
+  /* Background & Surface */
+  --bg-primary: #0f1117;
+  --bg-surface: #1a1d27;
+  --bg-surface-hover: #22253a;
+  --border-subtle: #2a2d3a;
+
+  /* Text */
+  --text-primary: #e8e9ed;
+  --text-secondary: #8b8fa3;
+  --text-muted: #565a6e;
+
+  /* Sentiment */
+  --color-positive: #10b981;
+  --color-negative: #f43f5e;
+  --color-neutral: #f59e0b;
+
+  /* Phase Accents */
+  --accent-phase1: #06b6d4;
+  --accent-phase2: #8b5cf6;
+  --accent-phase3: #f59e0b;
+  --accent-phase4: #f43f5e;
+
+  /* Primary Accent */
+  --accent-primary: #3b82f6;
+}
+
+@theme inline {
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-hover: var(--bg-surface-hover);
+  --color-border-subtle: var(--border-subtle);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-positive: var(--color-positive);
+  --color-negative: var(--color-negative);
+  --color-neutral: var(--color-neutral);
+  --color-accent-phase1: var(--accent-phase1);
+  --color-accent-phase2: var(--accent-phase2);
+  --color-accent-phase3: var(--accent-phase3);
+  --color-accent-phase4: var(--accent-phase4);
+  --color-accent-primary: var(--accent-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Scrollbar styling for controlled overflow areas */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 2px;
+}
+
+/* Code block base */
+pre, code {
+  font-family: var(--font-geist-mono), 'JetBrains Mono', monospace;
+}
