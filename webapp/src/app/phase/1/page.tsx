@@ -9,31 +9,39 @@ import Image from "next/image";
 
 const TOTAL_STEPS = 10;
 
-const EXTRACTION_CODE = `import anthropic, json, base64
+const EXTRACTION_CODE = `import anthropic
+from pdf2image import convert_from_path
 
 client = anthropic.Anthropic()
 
 def extract_survey(pdf_path):
-    """Send a PDF to Claude, get structured data back."""
-    pdf_data = open(pdf_path, "rb").read()
+    """Convert PDF to image, send to Claude, get structured JSON."""
+    # Convert PDF page to an image
+    image = convert_from_path(pdf_path)[0]
+    image_data = encode_image(image)
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
+        system="You are a data extraction assistant. Extract survey "
+               "responses into clean, structured JSON.",
         messages=[{
             "role": "user",
             "content": [
                 {
-                    "type": "document",
+                    "type": "image",
                     "source": {
                         "type": "base64",
-                        "media_type": "application/pdf",
-                        "data": base64.b64encode(pdf_data).decode()
+                        "media_type": "image/png",
+                        "data": image_data
                     }
                 },
                 {
                     "type": "text",
-                    "text": "Extract as JSON: name, site, position, "
-                            "years_at_district_band, q1 through q5"
+                    "text": "Extract these fields as JSON: "
+                            "name, site, position, "
+                            "years_at_district_band, "
+                            "years_in_profession_band, "
+                            "q1, q2, q3, q4, q5"
                 }
             ]
         }]
@@ -191,7 +199,7 @@ export default function Phase1Page() {
               code={EXTRACTION_CODE}
               language="python"
               title="extract_survey.py"
-              highlightLines={[8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]}
+              highlightLines={[14, 15, 16, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33]}
             />
           </StepReveal>
         </div>

@@ -8,6 +8,7 @@ import {
   StatCard,
   QuoteCard,
   CodeBlock,
+  SimulatedTerminal,
 } from "@/components/shared";
 import { usePresentation } from "@/hooks/usePresentation";
 import { LoopDiagram } from "@/components/phase4/LoopDiagram";
@@ -17,7 +18,7 @@ import { TransferGradient } from "@/components/phase4/TransferGradient";
 import { SimpsonParadox } from "@/components/phase4/SimpsonParadox";
 import { ComparisonTable } from "@/components/phase4/ComparisonTable";
 
-const TOTAL_STEPS = 20;
+const TOTAL_STEPS = 24;
 
 const RESEARCH_CODE = `# The auto-research loop
 while judge_score < 9.0 and round_num <= 12:
@@ -40,6 +41,109 @@ while judge_score < 9.0 and round_num <= 12:
     )
 
     round_num += 1`;
+
+// Round 1: broad exploration
+const ROUND1_AGENT = [
+  { type: "system" as const, content: "Round 1 — No prior findings. Starting broad exploration." },
+  { type: "user" as const, content: "Hypotheses: (1) Sentiment varies by site (2) Varies by position (3) HR fields like transfer status and building wing affect sentiment (4) Tenure and age correlate with sentiment" },
+  { type: "ai" as const, content: [
+    "Launching 4 parallel sub-agents to investigate...",
+    "",
+    "  Agent 1 (sites): Valley High lowest (+0.095), Riverside highest",
+    "    (+0.201). Gap persists within same positions.",
+    "",
+    "  Agent 2 (positions): Food Service only negative group (-0.032).",
+    "    District Office most positive (+0.418).",
+    "",
+    "  Agent 3 (HR fields): Transfers +0.334 vs non-transfers +0.119.",
+    "    Origin system quality creates 0.48 spread. North Wing at",
+    "    Hillcrest (n=30) is net negative — possible hardware issue.",
+    "",
+    "  Agent 4 (tenure/age): District tenure r=-0.24 (strong).",
+    "    Age r=+0.057 (essentially zero). It's institutional",
+    "    attachment, not age resistance.",
+    "",
+    "  Writing research memo and invoking judge...",
+  ]},
+];
+
+const ROUND1_JUDGE = [
+  { type: "system" as const, content: "Judge evaluation — Round 1" },
+  { type: "ai" as const, content: [
+    "  ┌─────────────────────┬───────┐",
+    "  │ Dimension           │ Score │",
+    "  ├─────────────────────┼───────┤",
+    "  │ Breadth             │   7   │",
+    "  │ Depth               │   6   │",
+    "  │ Evidence Quality     │   7   │",
+    "  │ Rigor               │   5   │",
+    "  │ Actionability       │   8   │",
+    "  │ Intellectual Honesty │   7   │",
+    "  ├─────────────────────┼───────┤",
+    "  │ Overall             │  6.7  │",
+    "  └─────────────────────┴───────┘",
+    "",
+    "  Gaps identified by judge:",
+    "  • Is the tenure effect confounded with position type?",
+    "  • Is the gender gap the same at every site?",
+    "  • North Wing issue: physical or demographic?",
+    "  • Sentiment scorer has not been validated",
+    "  • No interaction testing (A×B effects)",
+  ]},
+];
+
+// Round 2: addressing the critique
+const ROUND2_AGENT = [
+  { type: "system" as const, content: "Round 2 — Addressing judge critique from Round 1" },
+  { type: "user" as const, content: "Hypotheses: (1) Tenure effect holds after controlling for position (2) Gender gap differs by site (3) North Wing is physical, not demographic (4) Validate sentiment scorer against manual reading" },
+  { type: "ai" as const, content: [
+    "Launching 4 parallel sub-agents...",
+    "",
+    "  Agent 1 (confounders): Tenure effect holds across ALL 8",
+    "    position types. Not confounded. Partial r after controls: -0.21",
+    "",
+    "  Agent 2 (gender×site): Males +0.253 at Riverside but",
+    "    -0.154 at Valley High — a 0.407-point SWING. Overall",
+    "    correlation near zero was masking opposite effects.",
+    "",
+    "  Agent 3 (North Wing): 100% of 30 staff mention audio",
+    "    problems. Demographics match rest of Hillcrest.",
+    "    Physical installation defect, not morale issue.",
+    "",
+    "  Agent 4 (validation): Scored 50 responses manually.",
+    "    95% agreement with automated scorer. No direction flips.",
+    "    Scorer is reliable.",
+    "",
+    "  Writing research memo and invoking judge...",
+  ]},
+];
+
+const ROUND2_JUDGE = [
+  { type: "system" as const, content: "Judge evaluation — Round 2" },
+  { type: "ai" as const, content: [
+    "  ┌─────────────────────┬───────┐",
+    "  │ Dimension           │ Score │",
+    "  ├─────────────────────┼───────┤",
+    "  │ Breadth             │   8   │",
+    "  │ Depth               │   7   │",
+    "  │ Evidence Quality     │   8   │",
+    "  │ Rigor               │   7   │",
+    "  │ Actionability       │   8   │",
+    "  │ Intellectual Honesty │   8   │",
+    "  ├─────────────────────┼───────┤",
+    "  │ Overall             │  7.7  │",
+    "  └─────────────────────┴───────┘",
+    "",
+    "  Strengths: Confounder testing, scorer validation, finding",
+    "  the gender×site interaction — good instinct.",
+    "",
+    "  Gaps:",
+    "  • Need multivariate regression to isolate independent effects",
+    "  • Per-question analysis missing (is Q2 different from Q5?)",
+    "  • Haven't tested significance — are these real or noise?",
+    "  • No text-level analysis beyond keyword counting",
+  ]},
+];
 
 export default function Phase4Page() {
   const { step, isVisible, totalSteps } = usePresentation({
@@ -142,25 +246,113 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Step 5: Score trajectory — all 4 rounds */}
+      {/* === LAYER 1.5: THE ROUNDS IN ACTION === */}
+
+      {/* Step 5: Round 1 — agent investigates */}
       {step === 5 && (
         <div className="flex h-full flex-col justify-center">
           <StepReveal visible>
-            <h2 className="mb-2 text-center text-2xl font-bold text-text-primary">
-              Score Trajectory: Quality Improved Each Round
+            <div className="mb-1 text-xs font-bold uppercase tracking-wider text-accent-phase4">
+              Round 1 · Score: ???
+            </div>
+            <h2 className="mb-4 text-2xl font-bold text-text-primary">
+              Agent starts broad: test the obvious variables
             </h2>
-            <p className="mb-6 text-center text-lg text-text-secondary">
-              4 rounds to reach the 9.0 threshold — each judge critique drove deeper investigation
-            </p>
           </StepReveal>
           <StepReveal visible delay={0.2}>
+            <SimulatedTerminal
+              messages={ROUND1_AGENT}
+              accentColor="#f43f5e"
+              title="claude-code — auto-research / round 1"
+            />
+          </StepReveal>
+        </div>
+      )}
+
+      {/* Step 6: Round 1 — judge scores */}
+      {step === 6 && (
+        <div className="flex h-full flex-col justify-center">
+          <StepReveal visible>
+            <div className="mb-1 text-xs font-bold uppercase tracking-wider text-accent-phase4">
+              Round 1 · Score: 6.7
+            </div>
+            <h2 className="mb-4 text-2xl font-bold text-text-primary">
+              Judge: &ldquo;Good start — but you haven&rsquo;t tested interactions&rdquo;
+            </h2>
+          </StepReveal>
+          <StepReveal visible delay={0.2}>
+            <SimulatedTerminal
+              messages={ROUND1_JUDGE}
+              accentColor="#f59e0b"
+              title="judge — evaluation / round 1"
+            />
+          </StepReveal>
+        </div>
+      )}
+
+      {/* Step 7: Round 2 — agent addresses critique */}
+      {step === 7 && (
+        <div className="flex h-full flex-col justify-center">
+          <StepReveal visible>
+            <div className="mb-1 text-xs font-bold uppercase tracking-wider text-accent-phase4">
+              Round 2 · Score: ???
+            </div>
+            <h2 className="mb-4 text-2xl font-bold text-text-primary">
+              Agent responds to critique: test confounders, validate scorer
+            </h2>
+          </StepReveal>
+          <StepReveal visible delay={0.2}>
+            <SimulatedTerminal
+              messages={ROUND2_AGENT}
+              accentColor="#f43f5e"
+              title="claude-code — auto-research / round 2"
+            />
+          </StepReveal>
+        </div>
+      )}
+
+      {/* Step 8: Round 2 — judge scores again */}
+      {step === 8 && (
+        <div className="flex h-full flex-col justify-center">
+          <StepReveal visible>
+            <div className="mb-1 text-xs font-bold uppercase tracking-wider text-accent-phase4">
+              Round 2 · Score: 7.7
+            </div>
+            <h2 className="mb-4 text-2xl font-bold text-text-primary">
+              Judge: &ldquo;Better — now run a regression and analyze the text&rdquo;
+            </h2>
+          </StepReveal>
+          <StepReveal visible delay={0.2}>
+            <SimulatedTerminal
+              messages={ROUND2_JUDGE}
+              accentColor="#f59e0b"
+              title="judge — evaluation / round 2"
+            />
+          </StepReveal>
+        </div>
+      )}
+
+      {/* Step 9: Rounds 3-4 summary + trajectory */}
+      {step === 9 && (
+        <div className="flex h-full flex-col justify-center">
+          <StepReveal visible>
+            <h2 className="mb-2 text-center text-2xl font-bold text-text-primary">
+              The pattern continues: critique drives deeper investigation
+            </h2>
+            <p className="mb-4 text-center text-lg text-text-secondary">
+              Round 3: multivariate regression, per-question analysis → <span className="font-bold text-accent-phase4">8.8</span>
+              <br />
+              Round 4: text clustering, non-response patterns → <span className="font-bold text-positive">9.0 — threshold reached</span>
+            </p>
+          </StepReveal>
+          <StepReveal visible delay={0.3}>
             <ScoreTrajectory revealedPoints={4} />
           </StepReveal>
         </div>
       )}
 
-      {/* Step 6: Transition to discoveries */}
-      {step === 6 && (
+      {/* Step 10: Transition to discoveries */}
+      {step === 10 && (
         <div className="flex h-full flex-col items-center justify-center">
           <motion.div
             initial={{ opacity: 0 }}
@@ -185,8 +377,8 @@ export default function Phase4Page() {
 
       {/* === LAYER 2: THE DISCOVERIES === */}
 
-      {/* Steps 7-8: North Wing */}
-      {step === 7 && (
+      {/* Steps 11-12: North Wing */}
+      {step === 11 && (
         <div className="flex h-full flex-col justify-center">
           <StepReveal visible>
             <div className="mb-2 text-xs font-bold uppercase tracking-wider text-accent-phase4">
@@ -202,7 +394,7 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {step === 8 && (
+      {step === 12 && (
         <div className="flex h-full flex-col justify-center">
           <StepReveal visible>
             <div className="mb-2 text-xs font-bold uppercase tracking-wider text-accent-phase4">
@@ -218,8 +410,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Steps 9-10: Transfer Paradox */}
-      {step === 9 && (
+      {/* Step 13: Transfer Paradox */}
+      {step === 13 && (
         <div className="flex h-full flex-col justify-center">
           <StepReveal visible>
             <div className="mb-2 text-xs font-bold uppercase tracking-wider text-accent-phase4">
@@ -235,8 +427,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Steps 10-11: Simpson's Paradox — THE flagship moment */}
-      {step === 10 && (
+      {/* Steps 14-15: Simpson's Paradox — THE flagship moment */}
+      {step === 14 && (
         <div className="flex h-full flex-col justify-center px-12">
           <StepReveal visible>
             <div className="mb-2 text-xs font-bold uppercase tracking-wider text-accent-phase4">
@@ -249,7 +441,7 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {step === 11 && (
+      {step === 15 && (
         <div className="flex h-full flex-col justify-center px-12">
           <StepReveal visible>
             <div className="mb-2 text-xs font-bold uppercase tracking-wider text-accent-phase4">
@@ -262,8 +454,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Step 12: Q4 Non-response */}
-      {step === 12 && (
+      {/* Step 16: Q4 Non-response */}
+      {step === 16 && (
         <div className="flex h-full items-center justify-center gap-12">
           <StepReveal visible direction="left">
             <div className="text-center">
@@ -300,8 +492,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Step 13: Quiet dissenters */}
-      {step === 13 && (
+      {/* Step 17: Quiet dissenters */}
+      {step === 17 && (
         <div className="flex h-full items-center justify-center gap-12">
           <StepReveal visible direction="left">
             <div className="text-center">
@@ -352,8 +544,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Steps 14-15: Two Approaches Compared */}
-      {step === 14 && (
+      {/* Step 18: Two Approaches Compared */}
+      {step === 18 && (
         <div className="flex h-full flex-col justify-center px-8">
           <StepReveal visible>
             <div className="mb-2 text-xs font-bold uppercase tracking-wider text-accent-phase4">
@@ -371,8 +563,8 @@ export default function Phase4Page() {
 
       {/* === LAYER 3: HUMAN IN THE LOOP === */}
 
-      {/* Step 15: Neither replaced the human */}
-      {step === 15 && (
+      {/* Step 19: Neither replaced the human */}
+      {step === 19 && (
         <div className="flex h-full flex-col items-center justify-center text-center">
           <StepReveal visible direction="fade" duration={0.8}>
             <h2 className="text-3xl font-bold text-text-primary">
@@ -402,8 +594,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Step 16: The human's role */}
-      {step === 16 && (
+      {/* Step 20: The human's role */}
+      {step === 20 && (
         <div className="flex h-full flex-col items-center justify-center">
           <StepReveal visible>
             <h2 className="mb-8 text-center text-3xl font-bold text-text-primary">
@@ -434,8 +626,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Step 17: Human judgment quote */}
-      {step === 17 && (
+      {/* Step 21: Human judgment quote */}
+      {step === 21 && (
         <div className="flex h-full flex-col items-center justify-center max-w-3xl mx-auto">
           <StepReveal visible>
             <QuoteCard
@@ -452,8 +644,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Step 18: Key findings summary */}
-      {step === 18 && (
+      {/* Step 22: Key findings summary */}
+      {step === 22 && (
         <div className="flex h-full flex-col justify-center px-8">
           <StepReveal visible>
             <h2 className="mb-6 text-center text-2xl font-bold text-text-primary">
@@ -491,8 +683,8 @@ export default function Phase4Page() {
         </div>
       )}
 
-      {/* Step 19: Bridge to conclusion */}
-      {step === 19 && (
+      {/* Step 23: Bridge to conclusion */}
+      {step === 23 && (
         <div className="flex h-full flex-col items-center justify-center text-center">
           <motion.div
             initial={{ opacity: 0 }}
